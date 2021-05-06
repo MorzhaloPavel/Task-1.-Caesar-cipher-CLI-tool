@@ -2,6 +2,7 @@ const fs = require("fs");
 const { Command } = require('commander');
 const program = new Command();
 const { pipeline } = require('stream');
+const Transform = require('stream').Transform;
 
 const cipherCaesar = require("./cipher")
 
@@ -21,6 +22,7 @@ if (action !== 'decode' && action !== 'encode') {
   process.stderr.write(
     'Введите правильный "action"!'
   );
+  process.exit(1)
 }
 
 // вернутся доделать проверку на число
@@ -36,14 +38,24 @@ const readStream = input
   : process.stdin;
 
 const writeStream = output
-  ? fs.createWriteStream('output.txt', { flags: 'a+' })
+  ? fs.createWriteStream('output.txt', {flags: 'a'})
   : process.stdout;
 
 
 
+const S = action === 'encode' ? +shift : -shift;
+const transform = new Transform({
+  
+  transform(chunk, encoding, callback){
+    this.push(cipherCaesar(chunk.toString(), S));
+    callback()
+}
+})
 
 
+pipeline(readStream, transform, writeStream, err => { 
+  if (err) {console.log('Error pipeline')}
+  console.log('Pipeline succeeded.');
+});
 
-pipeline(readStream, transform, writeStream, () => {
-    console.log('Pipeline succeeded.');
-  });
+
