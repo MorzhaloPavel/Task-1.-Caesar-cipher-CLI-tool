@@ -1,6 +1,6 @@
-module.exports.caesarShift = function (str, shift) {
+module.exports = function cipherCaesar(str, shift) {
   if (shift < 0) {
-    return caesarShift(str, shift + 26);
+    return cipherCaesar(str, shift + 26);
   }
   let output = "";
   for (let i = 0; i < str.length; i++) {

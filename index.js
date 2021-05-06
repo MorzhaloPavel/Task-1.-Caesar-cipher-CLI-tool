@@ -1,14 +1,12 @@
 const fs = require("fs");
 const { Command } = require('commander');
 const program = new Command();
+const { pipeline } = require('stream');
 
-const cipher = require("./cipher")
-
-const {caesarShift} = cipher
-
+const cipherCaesar = require("./cipher")
 
 program
-  .requiredOption('-s, --shift <numb>', 'a shift')
+  .requiredOption('-s, --shift <number>', 'a shift')
   .option('-i, --input <filename>', 'an input file')
   .option('-o, --output <filename>', 'an output file')
   .requiredOption('-a, --action <type>', 'an action encode/decode')
@@ -19,49 +17,33 @@ program.parse(process.argv)
 const { action, shift, output, input } = program.opts();
 
 
-const action = options.action
-const shift = +options.shift
-const input = options.input
-const output = options.output
-
-if (action === 'encode') {
-  shift
-} else if (action === 'decode') {
-  shift = -shift
-} else {
-  return console.error('Введите правильный "action"!');
+if (action !== 'decode' && action !== 'encode') {
+  process.stderr.write(
+    'Введите правильный "action"!'
+  );
 }
 
-caesarShift(stringW, shift)
+// вернутся доделать проверку на число
+
+// if (typeof +shift !== 'number') {
+//   process.stderr.write(
+//     'Введите число!'
+//   );
+// }
+
+const readStream = input
+  ? fs.createReadStream('input.txt')
+  : process.stdin;
+
+const writeStream = output
+  ? fs.createWriteStream('output.txt', { flags: 'a+' })
+  : process.stdout;
 
 
 
 
 
 
-
-
-
-
-
-let stringW = "1"
-console.log(stringW);
-
-let readableStream = fs.createReadStream("input.txt", "utf8");
-readableStream.on("data", function(chunk){ 
-  chunk
-});
-
-console.log(stringW);
-
-
-
-// let writeableStream = fs.createWriteStream("hello.txt");
-// writeableStream.write("Привет мир!");
-// writeableStream.write("Продолжение записи \n");
-// writeableStream.end("Завершение записи");
-
-
-const stream = require('stream');
-
-stream.Transform
+pipeline(readStream, transform, writeStream, () => {
+    console.log('Pipeline succeeded.');
+  });
